@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body style="font-family: Arial, sans-serif; background:#f4f4f4;">
+  <div style="max-width:620px;margin:30px auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+    <div style="background:#c62828;padding:25px;text-align:center;">
+      <h1 style="color:#fff;margin:0;"> Leave Request Rejected</h1>
+    </div>
+    <div style="padding:30px;">
+      <p>Dear <strong th:text="${employeeName}">Employee</strong>,</p>
+      <p>Unfortunately, your <strong th:text="${leaveType}">SICK</strong> leave request 
+         from <strong th:text="${startDate}">01 Jan</strong> to 
+         <strong th:text="${endDate}">03 Jan</strong> has been <strong style="color:#c62828;">rejected</strong>.</p>
+      <div style="background:#fff3e0;border-left:4px solid #f57c00;padding:15px;margin:20px 0;border-radius:4px;">
+        <strong>Reason:</strong> <span th:text="${rejectionReason}">Insufficient leave balance</span>
+      </div>
+      <p>Please contact HR if you have any questions.</p>
+    </div>
+    <div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#888;">
+      <span th:text="${companyName}">Company</span> HRMS — Automated Notification
+    </div>
+  </div>
+</body>
+</html>

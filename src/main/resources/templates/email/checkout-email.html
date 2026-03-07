@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Evening Check-Out Report</title>
+  <style>
+    body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Arial, sans-serif; }
+    .wrapper { max-width: 720px; margin: 30px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .header { background: linear-gradient(135deg, #e65100, #bf360c); padding: 36px 40px; color: #fff; }
+    .header h1 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
+    .header p  { margin: 0; font-size: 14px; opacity: 0.85; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600; letter-spacing: 1px; margin-top: 12px; }
+    .summary { display: flex; justify-content: space-around; padding: 24px 40px; background: #fbe9e7; border-bottom: 1px solid #ffccbc; }
+    .summary-item { text-align: center; }
+    .summary-item .number { font-size: 32px; font-weight: 700; color: #e65100; }
+    .summary-item .label  { font-size: 12px; color: #5f6368; margin-top: 2px; }
+    .body { padding: 32px 40px; }
+    .body h2 { font-size: 15px; color: #3c4043; margin: 0 0 16px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: #e65100; color: #fff; }
+    thead th { padding: 12px 14px; text-align: left; font-weight: 600; letter-spacing: 0.4px; }
+    tbody tr:nth-child(even) { background: #f8f9fa; }
+    tbody tr:hover { background: #fbe9e7; }
+    tbody td { padding: 11px 14px; color: #3c4043; border-bottom: 1px solid #e8eaed; vertical-align: middle; }
+    .hours-badge { background: #e8f5e9; color: #1e8e3e; border-radius: 12px; padding: 3px 10px; font-weight: 600; font-size: 12px; display: inline-block; }
+    .hours-low   { background: #fce8e6; color: #ea4335; }
+    .empty-state { text-align: center; padding: 40px 20px; color: #80868b; }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+    .footer { background: #f8f9fa; padding: 20px 40px; text-align: center; font-size: 12px; color: #80868b; border-top: 1px solid #e8eaed; }
+    .footer strong { color: #3c4043; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🌆 Evening Check-Out Report</h1>
+    <p th:text="${reportDate}">Monday, 01 January 2025</p>
+    <div class="badge">CHECK-OUT SUMMARY</div>
+  </div>
+
+  <!-- SUMMARY COUNTS -->
+  <div class="summary">
+    <div class="summary-item">
+      <div class="number" th:text="${totalCount}">0</div>
+      <div class="label">Employees Checked Out</div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="body">
+    <h2>Employee Check-Out Details</h2>
+
+    <div th:if="${#lists.isEmpty(attendanceList)}" class="empty-state">
+      <div class="icon">📋</div>
+      <p>No employees have checked out yet for today.</p>
+    </div>
+
+    <table th:if="${!#lists.isEmpty(attendanceList)}">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Employee ID</th>
+          <th>Employee Name</th>
+          <th>Department</th>
+          <th>Check-In</th>
+          <th>Check-Out</th>
+          <th>Hours Worked</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="record, stat : ${attendanceList}">
+          <td th:text="${stat.count}">1</td>
+          <td th:text="${record.employee.employeeId}">EMP001</td>
+          <td th:text="${record.employee.fullName}">John Doe</td>
+          <td th:text="${record.employee.department != null ? record.employee.department.departmentName : 'N/A'}">Engineering</td>
+          <td th:text="${record.checkInTime != null ? #temporals.format(record.checkInTime, 'hh:mm a') : 'N/A'}">09:00 AM</td>
+          <td th:text="${#temporals.format(record.checkOutTime, 'hh:mm a')}">06:00 PM</td>
+          <td>
+            <!-- Show hours worked if both check-in and check-out exist -->
+            <span th:if="${record.checkInTime != null and record.hoursWorked != null}"
+                  th:class="${record.hoursWorked >= 8 ? 'hours-badge' : 'hours-badge hours-low'}"
+                  th:text="${#numbers.formatDecimal(record.hoursWorked, 1, 1)} + ' hrs'">8.0 hrs</span>
+            <span th:unless="${record.checkInTime != null and record.hoursWorked != null}"
+                  style="color:#80868b;">N/A</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>Generated at <strong th:text="${generatedAt}">07:00 PM</strong> &nbsp;|&nbsp; <strong>HRMS System</strong></p>
+    <p>This is an automated report. Please do not reply to this email.</p>
+  </div>
+
+</div>
+</body>
+</html>

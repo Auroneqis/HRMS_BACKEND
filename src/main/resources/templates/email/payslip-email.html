@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payslip</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f3f4f6; }
+    .wrapper { max-width: 650px; margin: 30px auto; background: #fff;
+               border-radius: 8px; overflow: hidden;
+               box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+
+    /* Header */
+    .header { background: #2563eb; padding: 28px 36px; }
+    .header h1 { color: #fff; font-size: 22px; margin-bottom: 4px; }
+    .header p  { color: #bfdbfe; font-size: 13px; }
+
+    /* Greeting */
+    .greeting { padding: 28px 36px 0; }
+    .greeting p { color: #374151; font-size: 15px; line-height: 1.6; }
+
+    /* Summary Card */
+    .summary-card { margin: 20px 36px; background: #f8fafc;
+                    border: 1px solid #e5e7eb; border-radius: 6px;
+                    overflow: hidden; }
+    .summary-card table { width: 100%; border-collapse: collapse; }
+    .summary-card td { padding: 10px 16px; font-size: 13px; }
+    .summary-card .label { color: #6b7280; width: 55%; }
+    .summary-card .value { color: #111827; text-align: right;
+                           font-weight: bold; }
+    .summary-card .total-row td { border-top: 2px solid #e5e7eb;
+                                   padding-top: 14px; padding-bottom: 14px; }
+    .summary-card .total-row .label { color: #111827; font-size: 15px;
+                                       font-weight: bold; }
+    .summary-card .total-row .value { color: #16a34a; font-size: 18px; }
+    .summary-card .deduction { color: #dc2626 !important; }
+
+    /* Section Title */
+    .section-title { padding: 0 36px; margin-top: 24px; margin-bottom: 8px;
+                     font-size: 13px; font-weight: bold; color: #2563eb;
+                     text-transform: uppercase; letter-spacing: 0.5px;
+                     border-bottom: 1.5px solid #2563eb; padding-bottom: 4px;
+                     margin-left: 36px; margin-right: 36px; }
+
+    /* Salary Breakup Table */
+    .breakup-table { margin: 0 36px; width: calc(100% - 72px);
+                     border-collapse: collapse; font-size: 13px; }
+    .breakup-table thead tr { background: #dbeafe; }
+    .breakup-table thead td { padding: 8px 12px; font-weight: bold;
+                               color: #1e40af; }
+    .breakup-table tbody tr:nth-child(even) { background: #f8fafc; }
+    .breakup-table tbody tr:nth-child(odd)  { background: #ffffff; }
+    .breakup-table tbody td { padding: 7px 12px; color: #374151;
+                               border-bottom: 1px solid #f1f5f9; }
+    .breakup-table tfoot tr { background: #dbeafe; }
+    .breakup-table tfoot td { padding: 10px 12px; font-weight: bold; }
+    .breakup-table .right { text-align: right; }
+    .breakup-table .green { color: #16a34a; }
+    .breakup-table .red   { color: #dc2626; }
+
+    /* Payment Details */
+    .payment-table { margin: 8px 36px; width: calc(100% - 72px);
+                     border-collapse: collapse; font-size: 13px; }
+    .payment-table td { padding: 6px 4px; }
+    .payment-table .p-label { color: #6b7280; width: 45%; }
+    .payment-table .p-value { color: #111827; font-weight: 500; }
+    .payment-table .badge { background: #dcfce7; color: #16a34a;
+                             padding: 2px 10px; border-radius: 12px;
+                             font-size: 12px; font-weight: bold;
+                             display: inline-block; }
+
+    /* Note */
+    .note { margin: 20px 36px; background: #eff6ff; border-left: 4px solid #2563eb;
+            padding: 12px 16px; border-radius: 0 6px 6px 0; }
+    .note p { color: #1e40af; font-size: 13px; }
+
+    /* Footer */
+    .footer { background: #f9fafb; padding: 18px 36px;
+              border-top: 1px solid #e5e7eb; text-align: center; margin-top: 24px; }
+    .footer p { color: #9ca3af; font-size: 11px; line-height: 1.6; }
+    .footer a { color: #2563eb; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+  <div class="header">
+    <h1>💰 Salary Credited Successfully</h1>
+    <p th:text="${month}">March 2024</p>
+  </div>
+
+  <!-- ── GREETING ───────────────────────────────────────────────────────── -->
+  <div class="greeting">
+    <p>Dear <strong th:text="${employeeName}">Employee</strong>,</p>
+    <br/>
+    <p>
+      Your salary for <strong th:text="${month}">March 2024</strong> has been
+      credited to your registered bank account. Please find the payslip PDF
+      attached to this email for your records.
+    </p>
+  </div>
+
+  <!-- ── SALARY SUMMARY CARD ────────────────────────────────────────────── -->
+  <div class="summary-card" style="margin-top: 20px;">
+    <table>
+      <tr>
+        <td class="label">Employee ID</td>
+        <td class="value" th:text="${employeeId}">EMP001</td>
+      </tr>
+      <tr>
+        <td class="label">Pay Period</td>
+        <td class="value" th:text="${month}">March 2024</td>
+      </tr>
+      <tr>
+        <td class="label">Gross Salary</td>
+        <td class="value">₹ <span th:text="${grossSalary}">0.00</span></td>
+      </tr>
+      <tr>
+        <td class="label">Total Deductions</td>
+        <td class="value deduction">− ₹ <span th:text="${totalDeductions}">0.00</span></td>
+      </tr>
+      <tr class="total-row">
+        <td class="label">Net Salary Credited</td>
+        <td class="value">₹ <span th:text="${netSalary}">0.00</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ── EARNINGS BREAKUP ───────────────────────────────────────────────── -->
+  <div class="section-title">Earnings Breakup</div>
+  <table class="breakup-table">
+    <thead>
+      <tr>
+        <td>Component</td>
+        <td class="right">Amount (₹)</td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Basic Salary</td>
+        <td class="right" th:text="${basicSalary}">0.00</td>
+      </tr>
+      <tr>
+        <td>HRA (40% of Basic)</td>
+        <td class="right" th:text="${hra}">0.00</td>
+      </tr>
+      <tr>
+        <td>DA (10% of Basic)</td>
+        <td class="right" th:text="${da}">0.00</td>
+      </tr>
+      <tr>
+        <td>Special Allowance</td>
+        <td class="right" th:text="${specialAllowance}">0.00</td>
+      </tr>
+      <tr>
+        <td>Overtime</td>
+        <td class="right" th:text="${overtimeAmount}">0.00</td>
+      </tr>
+      <tr>
+        <td>Bonus</td>
+        <td class="right" th:text="${bonusAmount}">0.00</td>
+      </tr>
+      <tr>
+        <td>Reimbursement</td>
+        <td class="right" th:text="${reimbursement}">0.00</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td class="green">Gross Salary</td>
+        <td class="right green" th:text="${grossSalary}">0.00</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- ── DEDUCTIONS BREAKUP ─────────────────────────────────────────────── -->
+  <div class="section-title" style="margin-top: 18px;">Deductions Breakup</div>
+  <table class="breakup-table">
+    <thead>
+      <tr>
+        <td>Component</td>
+        <td class="right">Amount (₹)</td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>PF - Employee (12%)</td>
+        <td class="right" th:text="${pfEmployee}">0.00</td>
+      </tr>
+      <tr>
+        <td>ESI - Employee (0.75%)</td>
+        <td class="right" th:text="${esiEmployee}">0.00</td>
+      </tr>
+      <tr>
+        <td>Professional Tax</td>
+        <td class="right" th:text="${professionalTax}">0.00</td>
+      </tr>
+      <tr>
+        <td>TDS (Income Tax)</td>
+        <td class="right" th:text="${tds}">0.00</td>
+      </tr>
+      <tr>
+        <td>Loan Deduction</td>
+        <td class="right" th:text="${loanDeduction}">0.00</td>
+      </tr>
+      <tr>
+        <td>Other Deduction</td>
+        <td class="right" th:text="${otherDeduction}">0.00</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td class="red">Total Deductions</td>
+        <td class="right red" th:text="${totalDeductions}">0.00</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- ── ATTENDANCE SUMMARY ─────────────────────────────────────────────── -->
+  <div class="section-title" style="margin-top: 18px;">Attendance Summary</div>
+  <table class="breakup-table">
+    <tbody>
+      <tr>
+        <td>Working Days</td>
+        <td class="right" th:text="${workingDays}">26</td>
+      </tr>
+      <tr>
+        <td>Present Days</td>
+        <td class="right" th:text="${presentDays}">24</td>
+      </tr>
+      <tr>
+        <td>Leave Days</td>
+        <td class="right" th:text="${leaveDays}">2</td>
+      </tr>
+      <tr>
+        <td>Absent (LOP)</td>
+        <td class="right" th:text="${absentDays}">0</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── PAYMENT DETAILS ────────────────────────────────────────────────── -->
+  <div class="section-title" style="margin-top: 18px;">Payment Details</div>
+  <table class="payment-table">
+    <tr>
+      <td class="p-label">Payment Date</td>
+      <td class="p-value" th:text="${paymentDate}">31-03-2024</td>
+    </tr>
+    <tr>
+      <td class="p-label">Transaction Reference</td>
+      <td class="p-value" th:text="${paymentRef}">TXN123456</td>
+    </tr>
+    <tr>
+      <td class="p-label">Payment Mode</td>
+      <td class="p-value" th:text="${paymentMode}">NEFT</td>
+    </tr>
+    <tr>
+      <td class="p-label">Status</td>
+      <td class="p-value"><span class="badge">PAID ✓</span></td>
+    </tr>
+  </table>
+
+  <!-- ── NOTE ──────────────────────────────────────────────────────────── -->
+  <div class="note">
+    <p>📎 Your detailed payslip is attached as a <strong>PDF</strong>.
+       Please download and keep it for your records, loan applications,
+       or tax filing purposes.</p>
+  </div>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+  <div class="footer">
+    <p>
+      This is a system-generated email. Please do not reply to this email.<br/>
+      For payroll queries, contact
+      <a href="mailto:hr@yourcompany.com">hr@yourcompany.com</a><br/><br/>
+      © 2024 HRMS System. All rights reserved.
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

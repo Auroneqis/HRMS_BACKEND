@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body style="font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0;">
+  <div style="max-width:620px;margin:30px auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+
+    <!-- Header -->
+    <div style="background:#1a73e8;padding:30px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:24px;">Welcome to the Team! 🎉</h1>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:30px;">
+      <p style="font-size:16px;">Dear <strong th:text="${employeeName}">Employee</strong>,</p>
+      <p>We're excited to have you on board at <strong th:text="${companyName}">Company</strong>. Your account is ready!</p>
+
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        <tr style="background:#f8f9fa;">
+          <td style="padding:10px;border:1px solid #dee2e6;font-weight:bold;width:40%;">Employee ID</td>
+          <td style="padding:10px;border:1px solid #dee2e6;" th:text="${employeeId}">EMP1001</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #dee2e6;font-weight:bold;">Department</td>
+          <td style="padding:10px;border:1px solid #dee2e6;" th:text="${department}">IT</td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+          <td style="padding:10px;border:1px solid #dee2e6;font-weight:bold;">Designation</td>
+          <td style="padding:10px;border:1px solid #dee2e6;" th:text="${designation}">Developer</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #dee2e6;font-weight:bold;">Joining Date</td>
+          <td style="padding:10px;border:1px solid #dee2e6;" th:text="${joiningDate}">01 Jan 2025</td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+          <td style="padding:10px;border:1px solid #dee2e6;font-weight:bold;">Login Email</td>
+          <td style="padding:10px;border:1px solid #dee2e6;" th:text="${loginEmail}">email@co.com</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #dee2e6;font-weight:bold;">Temp Password</td>
+          <td style="padding:10px;border:1px solid #dee2e6;color:#d32f2f;font-weight:bold;" th:text="${tempPassword}">Temp@1234</td>
+        </tr>
+      </table>
+
+      <p style="color:#d32f2f;font-size:13px;">⚠️ Please change your password immediately after first login.</p>
+
+      <div style="text-align:center;margin:25px 0;">
+        <a th:href="${loginUrl}" style="background:#1a73e8;color:#fff;padding:12px 30px;border-radius:5px;text-decoration:none;font-size:15px;font-weight:bold;">
+          Login to HRMS Portal
+        </a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#888;">
+      This is an automated email from <span th:text="${companyName}">Company</span> HRMS. Do not reply.
+    </div>
+  </div>
+</body>
+</html>
