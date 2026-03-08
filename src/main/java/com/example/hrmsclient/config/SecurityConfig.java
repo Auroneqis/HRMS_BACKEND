@@ -32,8 +32,10 @@ public class SecurityConfig {
         "/api/attendance/**",
         "/api/admin/register",
         "/api/attendance/today",
-        "/api/leaves/apply"
-        
+        "/api/leaves/apply",
+        "/actuator/health",
+        "/actuator/health/**",
+        "/actuator/info"
     };
 
     private static final String[] ADMIN_ONLY_URLS = {

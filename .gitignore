@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local / secret config — do not commit files with real credentials
+application-local.properties
+*-local.properties
+.env
+.env.*
+!.env.example
