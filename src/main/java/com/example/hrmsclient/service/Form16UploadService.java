@@ -227,36 +227,49 @@ public class Form16UploadService {
         return fileName.substring(0, idx).trim();
     }
 
+    /**
+     * Resolve the base directory for a given financial year.
+     * If form16Dir is relative (e.g. "uploads/form16/"), we resolve it
+     * against the current working directory to avoid Tomcat temp paths.
+     */
+    private Path resolveYearDir(String fy) throws IOException {
+        Path base = Paths.get(form16Dir);
+        if (!base.isAbsolute()) {
+            base = Paths.get(System.getProperty("user.dir")).resolve(base);
+        }
+        Path dir = base.resolve(fy);
+        Files.createDirectories(dir);
+        return dir;
+    }
+
     /** Save a file from ZipInputStream to disk */
     private String saveFileToDisk(ZipInputStream zis, String fileName,
                                    String fy) throws IOException {
-        String dir  = form16Dir + fy + "/";
-        Files.createDirectories(Paths.get(dir));
-        String path = dir + fileName;
+        Path dirPath = resolveYearDir(fy);
+        Path filePath = dirPath.resolve(fileName);
 
-        try (FileOutputStream fos = new FileOutputStream(path)) {
+        try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
             byte[] buffer = new byte[4096];
             int len;
             while ((len = zis.read(buffer)) > 0) {
                 fos.write(buffer, 0, len);
             }
         }
-        return path;
+        return filePath.toString();
     }
 
     /** Save a single MultipartFile to disk */
     private String saveSingleFile(MultipartFile file, String empId,
                                    String fy) throws IOException {
-        String dir      = form16Dir + fy + "/";
-        Files.createDirectories(Paths.get(dir));
+        Path dirPath  = resolveYearDir(fy);
         String fileName = empId + "_Form16_FY" + fy + ".pdf";
-        String path     = dir + fileName;
-        file.transferTo(new File(path));
-        return path;
+        Path filePath   = dirPath.resolve(fileName);
+        file.transferTo(filePath.toFile());
+        return filePath.toString();
     }
 
     private void ensureDir(String fy) throws IOException {
-        Files.createDirectories(Paths.get(form16Dir + fy + "/"));
+        resolveYearDir(fy);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

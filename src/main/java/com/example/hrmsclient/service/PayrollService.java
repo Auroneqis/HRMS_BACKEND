@@ -24,17 +24,20 @@ public class PayrollService {
     private final AttendanceRepository       attendanceRepository;
     private final PayrollCalculationService  calculationService;
     private final EmailService               emailService;
+    private final PayslipPdfService          payslipPdfService;
 
     public PayrollService(PayrollRepository payrollRepository,
                           EmployeeRepository employeeRepository,
                           AttendanceRepository attendanceRepository,
                           PayrollCalculationService calculationService,
-                          EmailService emailService) {
+                          EmailService emailService,
+                          PayslipPdfService payslipPdfService) {
         this.payrollRepository   = payrollRepository;
         this.employeeRepository  = employeeRepository;
         this.attendanceRepository = attendanceRepository;
         this.calculationService  = calculationService;
         this.emailService        = emailService;
+        this.payslipPdfService   = payslipPdfService;
     }
 
     // ── NEW: Save or Update Payroll for an Active Employee ─────────────────────
@@ -119,6 +122,7 @@ public class PayrollService {
     }
 
     // ── NEW: Monthly Payroll Report
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getPayrollReport(LocalDate month) {
         List<Payroll> payrolls = payrollRepository
             .findByPayrollMonth(month,
@@ -240,6 +244,14 @@ public class PayrollService {
         payroll.setPaymentReference("PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         payroll.setPaymentMode("NEFT");
         payroll.setProcessedBy(processedBy);
+        try {
+            // Generate payslip PDF and store a web-accessible URL
+            File pdf = payslipPdfService.generatePayslip(payroll);
+            String fileName = pdf.getName();
+            payroll.setPayslipUrl("/uploads/payslips/" + fileName);
+        } catch (Exception e) {
+            log.warn("Payslip PDF generation failed for payroll {}: {}", payrollId, e.getMessage());
+        }
         return payrollRepository.save(payroll);
     }
 

@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -89,6 +90,7 @@ public class EmployeeForm16Controller {
      * The employeeId is resolved from JWT — never trusted from request param.
      */
     @GetMapping("/download")
+    @Transactional(readOnly = true)
     public ResponseEntity<Resource> downloadMyForm16(
             @RequestParam(defaultValue = "2024-25") String fy,
             @AuthenticationPrincipal UserDetails userDetails) {

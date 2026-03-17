@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -196,6 +197,7 @@ public class PayrollController {
     // ── GET by Month 
     @GetMapping("/month")
     @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getPayrollByMonth(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate month,
             @RequestParam(defaultValue = "0")  int page,
@@ -211,9 +213,10 @@ public class PayrollController {
         ));
     }
 
-    // ── GET Employee History
+    // ── GET Employee History (used by My Documents for employees)
     @GetMapping("/employee/{employeeId}")
-    @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MANAGER','EMPLOYEE')")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getEmployeePayrollHistory(@PathVariable Long employeeId) {
         List<Payroll> payrolls = payrollRepository.findByEmployeeId(employeeId);
         return ResponseEntity.ok(Map.of(
@@ -274,6 +277,7 @@ public class PayrollController {
         map.put("remarks",          p.getRemarks() != null ? p.getRemarks() : "");
         map.put("paymentDate",      p.getPaymentDate() != null ? p.getPaymentDate().toString() : "Not Paid");
         map.put("paymentRef",       p.getPaymentReference() != null ? p.getPaymentReference() : "N/A");
+        map.put("payslipUrl",       p.getPayslipUrl() != null ? p.getPayslipUrl() : "");
         return map;
     }
 }
