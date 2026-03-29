@@ -42,7 +42,9 @@ public class PayrollService {
     }
 
     // ── NEW: Save or Update Payroll for an Active Employee ─────────────────────
-   
+    private boolean isManager(Employee user) {
+        return user != null && "MANAGER".equalsIgnoreCase(user.getRole());
+    }
     @Transactional
     public Payroll saveOrUpdatePayroll(PayrollRequestDTO dto, String processedBy) {
         // Guard: reject edits to locked months
@@ -121,44 +123,34 @@ public class PayrollService {
         return payrollRepository.existsByPayrollMonthAndStatus(month, PayrollStatus.LOCKED);
     }
 
-    // ── NEW: Monthly Payroll Report
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getPayrollReport(LocalDate month) {
-    	List<Payroll> payrolls =
-    		    payrollRepository.findByPayrollMonthWithEmployee(month);
+    public List<Map<String, Object>> getPayrollReport(LocalDate month, Employee user) {
 
-        List<Map<String, Object>> report = new ArrayList<>();
-        for (Payroll p : payrolls) {
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("employeeId",       p.getEmployee().getEmployeeId());
-            row.put("employeeName",     p.getEmployee().getFullName());
-            row.put("department",       p.getEmployee().getDepartment());
-            row.put("employeeType",     p.getEmployee().getEmployeeType() != null
-                                            ? p.getEmployee().getEmployeeType().name() : "");
-            row.put("month",            p.getPayrollMonth().toString());
-            row.put("basicSalary",      p.getBasicSalary());
-            row.put("hra",              p.getHra());
-            row.put("specialAllowance", p.getSpecialAllowance());
-            row.put("arrears",          p.getArrears());
-            row.put("perfPay",          p.getPerfPay());
-            row.put("weekendWorkDays",  p.getWeekendWorkDays());
-            row.put("weekendWorkAmount",p.getWeekendWorkAmount());
-            row.put("reimbursement",    p.getReimbursement());
-            row.put("fbp",              p.getFbp());
-            row.put("grossSalary",      p.getGrossSalary());
-            row.put("pfEmployee",       p.getPfEmployee());
-            row.put("professionalTax",  p.getProfessionalTax());
-            row.put("tds",              p.getTds());
-            row.put("salaryAdvance",    p.getSalaryAdvance());
-            row.put("otherDeduction",   p.getOtherDeduction());
-            row.put("totalDeductions",  p.getTotalDeductions());
-            row.put("netSalary",        p.getNetSalary());
-            row.put("status",           p.getStatus().name());
-            row.put("remarks",          p.getRemarks() != null ? p.getRemarks() : "");
-            report.add(row);
-        }
-        return report;
+        List<Payroll> payrolls = payrollRepository.findByPayrollMonthWithEmployee(month);
+
+        return payrolls.stream()
+        		.filter(p ->
+        	    !isManager(user) ||
+        	    (p.getEmployee().getManager() != null &&
+        	     p.getEmployee().getManager().getEmployeeId()
+        	        .equals(user.getEmployeeId()))
+        	)
+            .map(p -> {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("employeeId", p.getEmployee().getEmployeeId());
+                row.put("employeeName", p.getEmployee().getFullName());
+                row.put("department", p.getEmployee().getDepartment());
+                row.put("employeeType", p.getEmployee().getEmployeeType() != null
+                        ? p.getEmployee().getEmployeeType().name() : "");
+                row.put("month", p.getPayrollMonth().toString());
+                row.put("grossSalary", p.getGrossSalary());
+                row.put("netSalary", p.getNetSalary());
+                row.put("status", p.getStatus().name());
+                return row;
+            })
+            .toList();
     }
+    
 
     @Transactional
     public void generatePayrollForAllEmployees(LocalDate month) {
@@ -347,9 +339,10 @@ public class PayrollService {
             String department,
             String employeeType,
             int page,
-            int size
+            int size,
+            Employee user 
     ) {
-        List<Map<String, Object>> fullList = getPayrollReport(month); // existing
+    	List<Map<String, Object>> fullList = getPayrollReport(month, user);
 
         List<Map<String, Object>> filtered = fullList.stream()
             .filter(row ->

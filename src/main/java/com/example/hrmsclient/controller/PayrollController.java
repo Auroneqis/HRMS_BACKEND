@@ -1,6 +1,7 @@
 package com.example.hrmsclient.controller;
 
 import com.example.hrmsclient.dto.PayrollRequestDTO;
+import com.example.hrmsclient.entity.Employee;
 import com.example.hrmsclient.entity.Payroll;
 import com.example.hrmsclient.entity.PayrollStatus;
 import com.example.hrmsclient.repository.PayrollRepository;
@@ -94,11 +95,12 @@ public class PayrollController {
             @RequestParam(required = false) String department,
             @RequestParam(required = false) String employeeType,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal Employee user
     ) {
 
-        Page<Map<String, Object>> report =
-            payrollService.getPayrollReport(month, name, employeeId, department, employeeType, page, size);
+    	Page<Map<String, Object>> report =
+    		    payrollService.getPayrollReport(month, name, employeeId, department, employeeType, page, size, user);
 
         return ResponseEntity.ok(Map.of(
             "status", "success",

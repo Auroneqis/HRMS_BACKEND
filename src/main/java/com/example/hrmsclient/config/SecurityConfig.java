@@ -115,11 +115,10 @@ public class SecurityConfig {
                     "/api/payroll/month")
                     .hasAnyRole("ADMIN", "HR", "MANAGER")
 
-                // ── 8. Form 16 WRITE: ADMIN + HR only ─────────────────────────
                 .requestMatchers(HttpMethod.POST,
                     "/api/admin/form16/upload-bulk",
                     "/api/admin/form16/upload/**")
-                    .hasAnyRole("ADMIN", "HR")
+                    .hasAnyRole("ADMIN", "HR", "MANAGER")
 
                 .requestMatchers(HttpMethod.DELETE, "/api/admin/form16/**")
                     .hasAnyRole("ADMIN", "HR")

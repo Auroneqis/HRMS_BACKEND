@@ -1,9 +1,11 @@
 package com.example.hrmsclient.controller;
 
+import com.example.hrmsclient.entity.Employee;
 import com.example.hrmsclient.entity.Form16Document;
 import com.example.hrmsclient.repository.Form16DocumentRepository;
 import com.example.hrmsclient.service.Form16UploadService;
 import com.example.hrmsclient.service.Form16UploadService.BulkUploadResult;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,17 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * AdminForm16Controller
- * Endpoints for ADMIN / HR users to upload and manage Form 16 documents.
- *
- * Mapped URLs (all under /api/admin/form16):
- *  - POST   /upload-bulk?fy=YYYY-YY              → Upload ZIP with multiple PDFs
- *  - POST   /upload/{employeeId}?fy=YYYY-YY      → Single PDF upload for one employee
- *  - GET    /list?fy=YYYY-YY                     → List all Form 16 docs for a FY
- *  - GET    /status?fy=YYYY-YY                   → Summary counts for a FY
- *  - DELETE /{id}                                → Delete a Form 16 record
- */
+
 @RestController
 @RequestMapping("/api/admin/form16")
 
@@ -43,7 +35,7 @@ public class AdminForm16Controller {
 
     // ── BULK UPLOAD (ZIP) ─────────────────────────────────────────────────────
     @PostMapping("/upload-bulk")
-    @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MANAGER')")
     public ResponseEntity<?> uploadBulkZip(
             @RequestParam("file") MultipartFile file,
             @RequestParam("fy") String financialYear,
@@ -67,9 +59,9 @@ public class AdminForm16Controller {
         ));
     }
 
-    // ── SINGLE UPLOAD ─────────────────────────────────────────────────────────
+    // 
     @PostMapping("/upload/{employeeId}")
-    @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MANAGER')")
     public ResponseEntity<?> uploadSingle(
             @PathVariable Long employeeId,
             @RequestParam("fy") String financialYear,
@@ -147,4 +139,24 @@ public class AdminForm16Controller {
                 "message", "Form 16 record deleted"
         ));
     }
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<?> getMyForm16(
+            @RequestParam("fy") String financialYear,
+            @AuthenticationPrincipal Employee user
+    ) {
+        Form16Document doc = form16Repository
+            .findByEmployeeIdAndFinancialYear(user.getId(), financialYear)
+            .orElseThrow(() -> new RuntimeException("Form 16 not available"));
+
+        return ResponseEntity.ok(Map.of(
+            "status", "success",
+            "data", Map.of(
+                "id", doc.getId(),
+                "fileName", doc.getOriginalFileName(),
+                "financialYear", doc.getFinancialYear()
+            )
+        ));
+    }
+    
 }

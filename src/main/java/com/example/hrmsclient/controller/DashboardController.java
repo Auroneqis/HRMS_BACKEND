@@ -17,61 +17,63 @@ import java.util.Map;
 public class DashboardController {
 
     private final DashboardService dashboardService;
-    private final PayrollService   payrollService;
-    private final AdminService     adminService;
+    private final PayrollService payrollService;
+    private final AdminService adminService;
 
     public DashboardController(DashboardService dashboardService,
-                                PayrollService payrollService,
-                                AdminService adminService) {
+            PayrollService payrollService,
+            AdminService adminService) {
         this.dashboardService = dashboardService;
-        this.payrollService   = payrollService;
-        this.adminService     = adminService;
+        this.payrollService = payrollService;
+        this.adminService = adminService;
     }
 
     // Overview stats card
     // GET /api/dashboard/overview
     @GetMapping("/overview")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','HR','MANAGER')")
-    public ResponseEntity<?> getOverview() {
+    public ResponseEntity<?> getOverview(
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails user) {
         return ResponseEntity.ok(Map.of(
-            "status", "success",
-            "data",   dashboardService.getOverviewStats()
-        ));
+                "status", "success",
+                "data", dashboardService.getOverviewStats(user)));
     }
 
     // Employee list with ALL filters
     // GET /api/dashboard/employees?employeeId=EMP001&firstName=ravi&department=IT
-    //                              &role=EMPLOYEE&employmentStatus=ACTIVE
-    //                              &search=ravi&page=0&size=10&sortBy=firstName&sortDir=asc
+    // &role=EMPLOYEE&employmentStatus=ACTIVE
+    // &search=ravi&page=0&size=10&sortBy=firstName&sortDir=asc
     @GetMapping("/employees")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','HR','MANAGER')")
-    public ResponseEntity<?> getEmployees(@ModelAttribute DashboardFilterRequest filter) {
-        Page<Employee> employees = dashboardService.getFilteredEmployees(filter);
+    public ResponseEntity<?> getEmployees(
+            @ModelAttribute DashboardFilterRequest filter,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails user) {
+
+        Page<Employee> employees = dashboardService.getFilteredEmployees(filter, user);
         return ResponseEntity.ok(Map.of(
-            "status",       "success",
-            "data",         employees.getContent(),
-            "totalRecords", employees.getTotalElements(),
-            "totalPages",   employees.getTotalPages(),
-            "currentPage",  employees.getNumber()
-        ));
+                "status", "success",
+                "data", employees.getContent(),
+                "totalRecords", employees.getTotalElements(),
+                "totalPages", employees.getTotalPages(),
+                "currentPage", employees.getNumber()));
     }
 
     // Attendance with ALL filters
-    // GET /api/dashboard/attendance?attendanceDate=2024-03-01&attendanceStatus=PRESENT
-    //                               &employeeId=EMP001&attendanceDateFrom=2024-03-01
-    //                               &attendanceDateTo=2024-03-31&checkedIn=true
+    // GET
+    // /api/dashboard/attendance?attendanceDate=2024-03-01&attendanceStatus=PRESENT
+    // &employeeId=EMP001&attendanceDateFrom=2024-03-01
+    // &attendanceDateTo=2024-03-31&checkedIn=true
     @GetMapping("/attendance")
     @PreAuthorize("hasAnyRole('ADMIN','HR','MANAGER')")
     public ResponseEntity<?> getAttendance(@ModelAttribute DashboardFilterRequest filter) {
         Page<AttendanceResponseDTO> attendance = dashboardService.getFilteredAttendance(filter);
 
         return ResponseEntity.ok(Map.of(
-            "status",       "success",
-            "data",         attendance.getContent(),
-            "totalRecords", attendance.getTotalElements(),
-            "totalPages",   attendance.getTotalPages(),
-            "currentPage",  attendance.getNumber()
-        ));
+                "status", "success",
+                "data", attendance.getContent(),
+                "totalRecords", attendance.getTotalElements(),
+                "totalPages", attendance.getTotalPages(),
+                "currentPage", attendance.getNumber()));
     }
 
     // Department breakdown chart data
@@ -80,9 +82,8 @@ public class DashboardController {
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','HR','MANAGER')")
     public ResponseEntity<?> getDepartments() {
         return ResponseEntity.ok(Map.of(
-            "status", "success",
-            "data",   dashboardService.getDepartmentBreakdown()
-        ));
+                "status", "success",
+                "data", dashboardService.getDepartmentBreakdown()));
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -96,11 +97,10 @@ public class DashboardController {
     public ResponseEntity<?> getPayroll(@ModelAttribute DashboardFilterRequest filter) {
         Page<Payroll> payroll = dashboardService.getFilteredPayroll(filter);
         return ResponseEntity.ok(Map.of(
-            "status",       "success",
-            "data",         payroll.getContent(),
-            "totalRecords", payroll.getTotalElements(),
-            "totalPages",   payroll.getTotalPages()
-        ));
+                "status", "success",
+                "data", payroll.getContent(),
+                "totalRecords", payroll.getTotalElements(),
+                "totalPages", payroll.getTotalPages()));
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -113,9 +113,8 @@ public class DashboardController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAdminStats() {
         return ResponseEntity.ok(Map.of(
-            "status", "success",
-            "data",   adminService.getDashboardStats()
-        ));
+                "status", "success",
+                "data", adminService.getDashboardStats()));
     }
 
     // Generate payroll for a month — ADMIN ONLY
@@ -123,14 +122,11 @@ public class DashboardController {
     @PostMapping("/payroll/generate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> generatePayroll(
-            @RequestParam @org.springframework.format.annotation.DateTimeFormat(
-                    iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
-            LocalDate month) {
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate month) {
         payrollService.generatePayrollForAllEmployees(month);
         return ResponseEntity.ok(Map.of(
-            "status",  "success",
-            "message", "Payroll generated for " + month.getMonth() + " " + month.getYear()
-        ));
+                "status", "success",
+                "message", "Payroll generated for " + month.getMonth() + " " + month.getYear()));
     }
 
     // Approve payroll — ADMIN ONLY
@@ -139,17 +135,14 @@ public class DashboardController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> approvePayroll(
             @PathVariable Long id,
-            @org.springframework.security.core.annotation.AuthenticationPrincipal
-            org.springframework.security.core.userdetails.UserDetails user) {
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails user) {
         Payroll payroll = payrollService.approvePayroll(id, user.getUsername());
         return ResponseEntity.ok(Map.of(
-            "status",  "success",
-            "message", "Payroll approved",
-            "data",    Map.of(
-                "payrollId", payroll.getId(),
-                "status",    payroll.getStatus()
-            )
-        ));
+                "status", "success",
+                "message", "Payroll approved",
+                "data", Map.of(
+                        "payrollId", payroll.getId(),
+                        "status", payroll.getStatus())));
     }
 
     // Process salary payment — ADMIN ONLY
@@ -158,19 +151,16 @@ public class DashboardController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> processPayment(
             @PathVariable Long id,
-            @org.springframework.security.core.annotation.AuthenticationPrincipal
-            org.springframework.security.core.userdetails.UserDetails user) {
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails user) {
         Payroll payroll = payrollService.manualProcessPayment(id, user.getUsername());
         return ResponseEntity.ok(Map.of(
-            "status",  "success",
-            "message", "✅ Salary of ₹" + payroll.getNetSalary() + " transferred",
-            "data",    Map.of(
-                "payrollId",   payroll.getId(),
-                "netSalary",   payroll.getNetSalary(),
-                "paymentRef",  payroll.getPaymentReference(),
-                "paymentDate", payroll.getPaymentDate()
-            )
-        ));
+                "status", "success",
+                "message", "✅ Salary of ₹" + payroll.getNetSalary() + " transferred",
+                "data", Map.of(
+                        "payrollId", payroll.getId(),
+                        "netSalary", payroll.getNetSalary(),
+                        "paymentRef", payroll.getPaymentReference(),
+                        "paymentDate", payroll.getPaymentDate())));
     }
 
     // Delete employee — ADMIN ONLY
@@ -180,9 +170,8 @@ public class DashboardController {
     public ResponseEntity<?> deleteEmployee(@PathVariable Long id) {
         // delegated to EmployeeService
         return ResponseEntity.ok(Map.of(
-            "status",  "success",
-            "message", "Employee deleted successfully"
-        ));
+                "status", "success",
+                "message", "Employee deleted successfully"));
     }
 
     // Hold payroll — ADMIN ONLY
@@ -194,10 +183,9 @@ public class DashboardController {
             @RequestParam String reason) {
         Payroll payroll = payrollService.holdPayroll(id, reason);
         return ResponseEntity.ok(Map.of(
-            "status",  "success",
-            "message", "Payroll put on hold",
-            "data",    Map.of("payrollId", payroll.getId(), "status", payroll.getStatus())
-        ));
+                "status", "success",
+                "message", "Payroll put on hold",
+                "data", Map.of("payrollId", payroll.getId(), "status", payroll.getStatus())));
     }
 
     // Retry failed payment — ADMIN ONLY
@@ -207,9 +195,8 @@ public class DashboardController {
     public ResponseEntity<?> retryPayment(@PathVariable Long id) {
         Payroll payroll = payrollService.retryFailedPayment(id);
         return ResponseEntity.ok(Map.of(
-            "status",  "success",
-            "message", "Payment retried",
-            "data",    Map.of("payrollId", payroll.getId(), "status", payroll.getStatus())
-        ));
+                "status", "success",
+                "message", "Payment retried",
+                "data", Map.of("payrollId", payroll.getId(), "status", payroll.getStatus())));
     }
 }
