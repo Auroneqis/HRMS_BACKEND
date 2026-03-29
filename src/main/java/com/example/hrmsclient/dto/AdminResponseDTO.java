@@ -15,6 +15,8 @@ public class AdminResponseDTO {
     private String        role;
     private String        department;
     private String        designation;
+    /** Employee ID of assigned reporting manager, if any */
+    private String        reportingManager;
     private boolean       active;
     private LocalDateTime lastLoginAt;
     private LocalDateTime createdAt;
@@ -42,6 +44,8 @@ public class AdminResponseDTO {
     public void setDepartment(String v)              { this.department = v; }
     public String getDesignation()                   { return designation; }
     public void setDesignation(String v)             { this.designation = v; }
+    public String getReportingManager()            { return reportingManager; }
+    public void setReportingManager(String v)      { this.reportingManager = v; }
     public boolean isActive()                        { return active; }
     public void setActive(boolean v)                 { this.active = v; }
     public LocalDateTime getLastLoginAt()            { return lastLoginAt; }

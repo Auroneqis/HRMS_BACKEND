@@ -25,6 +25,8 @@ public class AdminRequestDTO {
     private String role;           // ADMIN or SUPER_ADMIN
     private String department;
     private String designation;
+    /** Optional Employee ID of reporting manager (MANAGER / HR / ADMIN employee) */
+    private String reportingManager;
 
     public String getFirstName()             { return firstName; }
     public void setFirstName(String v)       { this.firstName = v; }
@@ -44,4 +46,6 @@ public class AdminRequestDTO {
     public void setDepartment(String v)      { this.department = v; }
     public String getDesignation()           { return designation; }
     public void setDesignation(String v)     { this.designation = v; }
+    public String getReportingManager()      { return reportingManager; }
+    public void setReportingManager(String v) { this.reportingManager = v; }
 }

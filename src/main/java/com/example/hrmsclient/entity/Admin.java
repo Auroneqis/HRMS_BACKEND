@@ -56,6 +56,10 @@ public class Admin {
     @Column(name = "designation", length = 100)
     private String designation;
 
+    /** Employee ID (EMP…) of reporting manager — Employee table, same as employee.reportingManager */
+    @Column(name = "reporting_manager", length = 50)
+    private String reportingManager;
+
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
@@ -100,6 +104,8 @@ public class Admin {
     public void setDepartment(String v)               { this.department = v; }
     public String getDesignation()                    { return designation; }
     public void setDesignation(String v)              { this.designation = v; }
+    public String getReportingManager()             { return reportingManager; }
+    public void setReportingManager(String v)       { this.reportingManager = v; }
     public boolean isActive()                         { return active; }
     public void setActive(boolean v)                  { this.active = v; }
     public boolean isDeleted()                        { return deleted; }

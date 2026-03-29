@@ -45,6 +45,8 @@ public class AdminService {
         admin.setRole(req.getRole() != null ? req.getRole() : "ADMIN");
         admin.setDepartment(req.getDepartment());
         admin.setDesignation(req.getDesignation());
+        if (hasValue(req.getReportingManager()))
+            admin.setReportingManager(req.getReportingManager().trim());
 
         return toDTO(adminRepository.save(admin));
     }
@@ -92,6 +94,10 @@ public class AdminService {
         if (hasValue(req.getRole()))             admin.setRole(req.getRole());
         if (hasValue(req.getPassword()))
             admin.setPassword(passwordEncoder.encode(req.getPassword()));
+        if (req.getReportingManager() != null) {
+            admin.setReportingManager(
+                    req.getReportingManager().isBlank() ? null : req.getReportingManager().trim());
+        }
 
         return toDTO(adminRepository.save(admin));
     }
@@ -144,6 +150,7 @@ public class AdminService {
         dto.setRole(a.getRole());
         dto.setDepartment(a.getDepartment());
         dto.setDesignation(a.getDesignation());
+        dto.setReportingManager(a.getReportingManager());
         dto.setActive(a.isActive());
         dto.setLastLoginAt(a.getLastLoginAt());
         dto.setCreatedAt(a.getCreatedAt());
