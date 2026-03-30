@@ -36,7 +36,6 @@ public class LeaveRequest {
     private String leaveType;
 
     @NotNull
-    @FutureOrPresent
     private LocalDate startDate;
 
     @NotNull

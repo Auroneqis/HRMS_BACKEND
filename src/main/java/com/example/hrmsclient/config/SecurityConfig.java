@@ -41,7 +41,7 @@ public class SecurityConfig {
 
     // ── ADMIN-only (user management, email logs) ──────────────────────────────
     private static final String[] ADMIN_ONLY_URLS = {
-        "/api/admin/**",          // Admin user CRUD — ADMIN only
+        "/api/admin/users/**",          // Admin user CRUD — ADMIN only
         "/api/dashboard/admin-stats",
         "/api/emails/**"
     };
@@ -114,6 +114,10 @@ public class SecurityConfig {
                     "/api/payroll/summary",
                     "/api/payroll/month")
                     .hasAnyRole("ADMIN", "HR", "MANAGER")
+
+                // ── Employee can view their own payroll history ────────────────
+                .requestMatchers(HttpMethod.GET, "/api/payroll/my")
+                    .hasAnyRole("ADMIN", "HR", "MANAGER", "EMPLOYEE")
 
                 .requestMatchers(HttpMethod.POST,
                     "/api/admin/form16/upload-bulk",

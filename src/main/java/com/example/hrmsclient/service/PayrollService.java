@@ -64,7 +64,6 @@ public class PayrollService {
                 "Payroll can only be updated for ACTIVE employees.");
         }
 
-        // Upsert
         Payroll payroll = payrollRepository
             .findByEmployeeIdAndPayrollMonth(employee.getId(), dto.getPayrollMonth())
             .orElse(new Payroll());

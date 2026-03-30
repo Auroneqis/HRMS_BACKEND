@@ -44,4 +44,10 @@ public interface PayrollRepository extends JpaRepository<Payroll, Long> {
     		ORDER BY e.firstName
     		""")
     		List<Payroll> findByPayrollMonthWithEmployee(@Param("month") LocalDate month);
+    Page<Payroll> findByEmployee_Manager_IdAndPayrollMonth(
+            Long managerId,
+            LocalDate month,
+            Pageable pageable
+    );
+    
 }

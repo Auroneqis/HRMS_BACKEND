@@ -7,9 +7,6 @@ import com.example.hrmsclient.entity.PayrollStatus;
 import com.example.hrmsclient.repository.PayrollRepository;
 import com.example.hrmsclient.service.PayrollService;
 import com.example.hrmsclient.service.PayslipPdfService;
-import com.lowagie.text.Document;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.pdf.PdfWriter;
 
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -22,14 +19,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.ByteArrayOutputStream;
+import com.example.hrmsclient.repository.EmployeeRepository;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.io.File;
 import java.nio.file.Files;
+
 @RestController
 @RequestMapping("/api/payroll")
 public class PayrollController {
@@ -37,12 +34,15 @@ public class PayrollController {
 	private final PayrollService payrollService;
 	private final PayrollRepository payrollRepository;
 	private final PayslipPdfService payslipPdfService;
+	private final EmployeeRepository employeeRepository;
 
 	public PayrollController(PayrollService payrollService, PayrollRepository payrollRepository,
-			PayslipPdfService payslipPdfService) {
+			PayslipPdfService payslipPdfService,
+			EmployeeRepository employeeRepository) {
 		this.payrollService = payrollService;
 		this.payrollRepository = payrollRepository;
 		this.payslipPdfService = payslipPdfService;
+		this.employeeRepository = employeeRepository;
 	}
 
 	// ── NEW: Save / Update Payroll for Active Employee
@@ -172,11 +172,37 @@ public class PayrollController {
 	@PreAuthorize("hasAnyRole('ADMIN','HR','MANAGER')")
 	@Transactional(readOnly = true)
 	public ResponseEntity<?> getPayrollByMonth(
-			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate month,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+	        @RequestParam LocalDate month,
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "20") int size,
+	        @AuthenticationPrincipal UserDetails userDetails
+	) {
 
-		PageRequest pageRequest = PageRequest.of(page, size, Sort.by("employee.firstName"));
-		Page<Payroll> payrolls = payrollRepository.findByPayrollMonth(month, pageRequest);
+	    if (userDetails == null) {
+	        throw new RuntimeException("User not authenticated");
+	    }
+
+	    PageRequest pageRequest = PageRequest.of(page, size, Sort.by("employee.firstName"));
+	    Page<Payroll> payrolls;
+
+	    // Admin users are stored in the admin table (not the employee table),
+	    // so their principal is a plain Spring Security User, not an Employee.
+	    // Employee-based roles (HR, MANAGER) will have an Employee principal.
+	    if (userDetails instanceof Employee employeeUser) {
+	        if ("MANAGER".equals(employeeUser.getRole())) {
+	            // Managers only see payrolls of their direct reports
+	            payrolls = payrollRepository.findByEmployee_Manager_IdAndPayrollMonth(
+	                    employeeUser.getId(), month, pageRequest
+	            );
+	        } else {
+	            // HR — full access
+	            payrolls = payrollRepository.findByPayrollMonth(month, pageRequest);
+	        }
+	    } else {
+	        // Admin principal (plain Spring Security User) — full access
+	        payrolls = payrollRepository.findByPayrollMonth(month, pageRequest);
+	    }
+
 		return ResponseEntity.ok(Map.of("status", "success", "data",
 				payrolls.getContent().stream().map(this::buildPayrollSummary).toList(), "totalRecords",
 				payrolls.getTotalElements(), "totalPages", payrolls.getTotalPages()));
@@ -211,16 +237,25 @@ public class PayrollController {
 						"isLocked", payrollService.isMonthLocked(month))));
 	}
 
-	// payslip
+	// ── Download Payslip
 	@GetMapping("/{id}/payslip")
-	public ResponseEntity<byte[]> downloadPayslip(@PathVariable Long id) throws Exception {
+	@PreAuthorize("hasAnyRole('ADMIN','HR','MANAGER','EMPLOYEE')")
+	public ResponseEntity<byte[]> downloadPayslip(
+	        @PathVariable Long id,
+	        @AuthenticationPrincipal Employee user
+	) throws Exception {
 
 	    Payroll payroll = payrollRepository.findByIdWithEmployee(id)
 	            .orElseThrow(() -> new RuntimeException("Payroll not found"));
+	    if (!user.getRole().equals("ADMIN") && !user.getRole().equals("HR")) {
+	        if (!payroll.getEmployee().getId().equals(user.getId())) {
+	            throw new RuntimeException("Access denied");
+	        }
+	    }
 
 	    File pdfFile = payslipPdfService.generatePayslip(payroll);
 
-	    byte[] pdfBytes = java.nio.file.Files.readAllBytes(pdfFile.toPath());
+	    byte[] pdfBytes = Files.readAllBytes(pdfFile.toPath());
 
 	    return ResponseEntity.ok()
 	            .header("Content-Disposition", "attachment; filename=" + pdfFile.getName())
@@ -260,5 +295,40 @@ public class PayrollController {
 		map.put("paymentRef", p.getPaymentReference() != null ? p.getPaymentReference() : "N/A");
 		map.put("payslipUrl", p.getPayslipUrl() != null ? p.getPayslipUrl() : "");
 		return map;
+	}
+
+	// ── GET My Payroll (for logged-in employee/manager)
+	@GetMapping("/my")
+	@PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER')")
+	@Transactional(readOnly = true)
+	public ResponseEntity<?> getMyPayroll(
+	        @RequestParam(required = false)
+	        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate month,
+	        @AuthenticationPrincipal UserDetails userDetails
+	) {
+
+	    // Only EMPLOYEE and MANAGER reach this endpoint — both are in the employee table,
+	    // so the principal is always an Employee (which implements UserDetails).
+	    if (!(userDetails instanceof Employee user)) {
+	        throw new RuntimeException("User not authenticated as an employee");
+	    }
+
+		List<Payroll> payrolls;
+
+		if (month != null) {
+		    payrolls = payrollRepository
+		            .findByEmployeeIdAndPayrollMonth(user.getId(), month)
+		            .map(List::of)
+		            .orElseGet(List::of);
+		} else {
+		    payrolls = payrollRepository.findByEmployeeId(user.getId());
+		}
+
+	    return ResponseEntity.ok(Map.of(
+	            "status", "success",
+	            "data", payrolls.stream()
+	                    .map(this::buildPayrollSummary)
+	                    .toList()
+	    ));
 	}
 }
