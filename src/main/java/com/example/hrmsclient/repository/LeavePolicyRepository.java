@@ -2,6 +2,8 @@ package com.example.hrmsclient.repository;
 
 import com.example.hrmsclient.entity.EmployeeType;
 import com.example.hrmsclient.entity.LeavePolicy;
+import com.example.hrmsclient.entity.LeaveType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -17,4 +19,10 @@ public interface LeavePolicyRepository extends JpaRepository<LeavePolicy, Long> 
             EmployeeType employeeType,
             String leaveType
     );
+    
+    Optional<LeavePolicy> findByEmployeeTypeAndLeaveType(
+            EmployeeType employeeType, LeaveType leaveType);
+
+    boolean existsByEmployeeTypeAndLeaveType(
+            EmployeeType employeeType, LeaveType leaveType);
 }
