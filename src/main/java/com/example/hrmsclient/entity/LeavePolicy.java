@@ -70,6 +70,7 @@ public class LeavePolicy {
     public String       getDescription()        { return description; }
 
     public void setId(Long id)                              { this.id = id; }
+
     public void setEmployeeType(EmployeeType employeeType)  { this.employeeType = employeeType; }
     public void setLeaveType(LeaveType leaveType)           { this.leaveType = leaveType; }
     public void setTotalDays(int totalDays)                 { this.totalDays = totalDays; }

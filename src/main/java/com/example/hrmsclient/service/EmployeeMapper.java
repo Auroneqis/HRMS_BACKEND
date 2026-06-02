@@ -47,6 +47,9 @@ public class EmployeeMapper {
         e.setHigherQualification(dto.getHigherQualification());
         e.setRole(dto.getRole());
         e.setEmployeeType(dto.getEmployeeType());
+        if (dto.getEmploymentStatus() != null) {
+    e.setEmploymentStatus(dto.getEmploymentStatus());
+}
         e.setBankName(dto.getBankName());
         e.setAccountNo(dto.getAccountNo());
         e.setIfscCode(dto.getIfscCode());
@@ -83,7 +86,15 @@ public class EmployeeMapper {
         if (dto.getMaritalStatus()       != null) e.setMaritalStatus(dto.getMaritalStatus());
         if (dto.getDepartment()          != null) e.setDepartment(dto.getDepartment());
         if (dto.getDesignation()         != null) e.setDesignation(dto.getDesignation());
-        if (dto.getRole()                != null) e.setRole(dto.getRole());
+        if (dto.getRole() != null)
+    e.setRole(dto.getRole());
+
+if (dto.getEmploymentStatus() != null)
+    e.setEmploymentStatus(dto.getEmploymentStatus());
+
+if (dto.getEmployeeType() != null)
+    e.setEmployeeType(dto.getEmployeeType());
+
         if (dto.getEmployeeType()        != null) e.setEmployeeType(dto.getEmployeeType());
         if (dto.getBankName()            != null) e.setBankName(dto.getBankName());
         if (dto.getAccountNo()           != null) e.setAccountNo(dto.getAccountNo());

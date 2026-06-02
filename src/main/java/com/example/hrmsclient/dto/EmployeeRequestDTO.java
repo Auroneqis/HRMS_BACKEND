@@ -4,9 +4,13 @@ import com.example.hrmsclient.entity.EmployeeType;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
+import com.example.hrmsclient.entity.EmploymentStatus;
 
 public class EmployeeRequestDTO {
 
+
+    @NotNull(message = "Employment status is required")
+    private EmploymentStatus employmentStatus;
     @NotBlank(message = "Employee ID is required")
     @Size(max = 20)
     private String employeeId;
@@ -68,17 +72,10 @@ public class EmployeeRequestDTO {
     @NotBlank(message = "Role is required")
     private String role;
 
-    /**
-     * NEW: Employee type — drives leave entitlements and payroll rules.
-     * Allowed values: FULL_TIME | CONTRACT | TEMPORARY | INTERN
-     */
+  
     @NotNull(message = "Employee type is required")
     private EmployeeType employeeType;
 
-    /**
-     * NEW: Reporting manager's employeeId (e.g. "EMP005").
-     * Used for manager-level leave approval.
-     */
     private String reportingManager;
 
     private String bankName;
@@ -89,7 +86,6 @@ public class EmployeeRequestDTO {
 
     private String bankBranch;
 
-    @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
@@ -123,8 +119,6 @@ public class EmployeeRequestDTO {
     public String getDesignation()          { return designation; }
     public String getPreviousCtc()          { return previousCtc; }
     public String getHigherQualification()  { return higherQualification; }
-    public String getRole()                 { return role; }
-    public EmployeeType getEmployeeType()   { return employeeType; }
     public String getReportingManager()     { return reportingManager; }
     public String getBankName()             { return bankName; }
     public String getAccountNo()            { return accountNo; }
@@ -160,7 +154,6 @@ public class EmployeeRequestDTO {
     public void setDesignation(String designation)                { this.designation         = designation; }
     public void setPreviousCtc(String v)                          { this.previousCtc         = v; }
     public void setHigherQualification(String v)                  { this.higherQualification = v; }
-    public void setRole(String role)                              { this.role                = role; }
     public void setEmployeeType(EmployeeType employeeType)        { this.employeeType        = employeeType; }
     public void setReportingManager(String reportingManager)      { this.reportingManager    = reportingManager; }
     public void setBankName(String bankName)                      { this.bankName            = bankName; }
@@ -168,4 +161,22 @@ public class EmployeeRequestDTO {
     public void setIfscCode(String ifscCode)                      { this.ifscCode            = ifscCode; }
     public void setBankBranch(String bankBranch)                  { this.bankBranch          = bankBranch; }
     public void setPassword(String password)                      { this.password            = password; }
+    public EmployeeType getEmployeeType() { 
+    return employeeType; 
+}
+public EmploymentStatus getEmploymentStatus() {
+    return employmentStatus;
+}
+
+public void setEmploymentStatus(EmploymentStatus employmentStatus) {
+    this.employmentStatus = employmentStatus;
+}
+public String getRole() {
+    return role;
+}
+
+public void setRole(String role) {
+    this.role = role;
+}
+
 }

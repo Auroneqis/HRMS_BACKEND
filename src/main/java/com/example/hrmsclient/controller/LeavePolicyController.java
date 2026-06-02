@@ -44,6 +44,7 @@ public class LeavePolicyController {
 
     // ── Get by ID ─────────────────────────────────────────────────────────
     @GetMapping("/{id}")
+   
     public ResponseEntity<LeavePolicy> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
     }

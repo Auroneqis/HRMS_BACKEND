@@ -234,6 +234,14 @@ public class AttendanceService {
                 row.put("checkOut",      att.getCheckOut() != null ? att.getCheckOut().toString() : "");
                 row.put("workingHours",  att.getWorkingHours());
                 row.put("remarks",       att.getRemarks()  != null ? att.getRemarks() : "");
+
+                row.put("checkInAddress",
+                att.getCheckInAddress() != null ? att.getCheckInAddress() : "");
+                row.put("checkInLatitude",
+                att.getCheckInLatitude());
+                row.put("checkInLongitude",
+                att.getCheckInLongitude());
+
                 row.put("isEdited",      att.getLastEditedAt() != null);
                 row.put("editedByName",  att.getLastEditedByName() != null ? att.getLastEditedByName() : "");
                 row.put("editedByRole",  att.getLastEditedByRole() != null ? att.getLastEditedByRole() : "");

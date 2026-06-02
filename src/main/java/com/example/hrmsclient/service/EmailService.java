@@ -12,7 +12,6 @@ import org.thymeleaf.context.Context;
 
 import com.example.hrmsclient.entity.Employee;
 import com.example.hrmsclient.entity.Payroll;
-
 import java.io.File;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
@@ -23,10 +22,12 @@ import java.util.logging.Logger;
 public class EmailService {
 
 	private static final Logger log = Logger.getLogger(EmailService.class.getName());
+	
 
 	private final JavaMailSender mailSender;
 	private final TemplateEngine templateEngine;
 	private final PayslipPdfService payslipPdfService;
+	private final EmailLogService emailLogService;
 
 	@Value("${app.mail.from}")
 	private String fromEmail;
@@ -39,11 +40,14 @@ public class EmailService {
 	@Value("${app.company.url}")
 	private String companyUrl;
 
-	public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine, PayslipPdfService payslipPdfService) {
+	public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine, PayslipPdfService payslipPdfService,EmailLogService emailLogService) {
 		this.mailSender = mailSender;
 		this.templateEngine = templateEngine;
 		this.payslipPdfService = payslipPdfService;
+		this.emailLogService = emailLogService;
 	}
+
+	
 
 	public void sendSimpleEmail(String to, String subject, String body) {
 		try {
@@ -125,25 +129,50 @@ public class EmailService {
 
 	// Bulk Email (BCC)
 	@Async
-	public void sendBulkEmail(String[] recipients, String subject, String htmlContent) {
-		if (recipients == null || recipients.length == 0) {
-			log.warning("No recipients provided for bulk email");
-			return;
-		}
-		try {
-			MimeMessage message = mailSender.createMimeMessage();
-			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-			helper.setFrom(fromEmail, fromName);
-			helper.setBcc(recipients);
-			helper.setSubject(subject);
-			helper.setText(htmlContent, true);
-			mailSender.send(message);
-			log.info("Bulk email sent to " + recipients.length + " recipients");
-		} catch (Exception e) {
-			log.severe("Failed to send bulk email: " + e.getMessage());
-			throw new RuntimeException("Bulk email send failed", e);
-		}
-	}
+public void sendBulkEmail(String[] recipients,
+                          String subject,
+                          String htmlContent) {
+
+    if (recipients == null || recipients.length == 0) {
+        log.warning("No recipients provided");
+        return;
+    }
+
+    for (String recipient : recipients) {
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(recipient);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+            emailLogService.logSuccess(
+                    recipient,
+                    subject,
+                    "BROADCAST"
+            );
+
+            log.info("Email sent to " + recipient);
+
+        } catch (Exception e) {
+
+            emailLogService.logFailure(
+                    recipient,
+                    subject,
+                    "BROADCAST",
+                    e.getMessage()
+            );
+
+            log.severe("Failed for " + recipient);
+        }
+    }
+}
 
 	// 8. PAYSLIP EMAIL
 	@Async

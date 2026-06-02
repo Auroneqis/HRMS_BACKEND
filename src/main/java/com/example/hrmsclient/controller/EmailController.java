@@ -1,6 +1,7 @@
 package com.example.hrmsclient.controller;
 
 import com.example.hrmsclient.dto.ApiResponse;
+import com.example.hrmsclient.dto.BroadcastEmailRequest;
 import com.example.hrmsclient.dto.PageResponseDTO;
 import com.example.hrmsclient.entity.EmailLog;
 import com.example.hrmsclient.service.EmailLogService;
@@ -21,15 +22,20 @@ public class EmailController {
     	 this.emailService=emailService;
     	 this.emailLogService=emailLogService;
     }
-    @PostMapping("/broadcast")
-    public ResponseEntity<ApiResponse<Void>> broadcast(
-            @RequestParam String[] recipients,
-            @RequestParam String subject,
-            @RequestBody String htmlContent) {
-        emailService.sendBulkEmail(recipients, subject, htmlContent);
-        return ResponseEntity.ok(ApiResponse.success(null, "Broadcast queued"));
-    }
+   @PostMapping("/broadcast")
+public ResponseEntity<ApiResponse<Void>> broadcast(
+        @RequestBody BroadcastEmailRequest request) {
 
+    emailService.sendBulkEmail(
+            request.getRecipients(),
+            request.getSubject(),
+            request.getHtmlContent()
+    );
+
+    return ResponseEntity.ok(
+            ApiResponse.success(null, "Broadcast queued")
+    );
+}
     @GetMapping("/logs")
     public ResponseEntity<ApiResponse<PageResponseDTO<EmailLog>>> getLogs(
             @RequestParam(defaultValue = "0")  int page,

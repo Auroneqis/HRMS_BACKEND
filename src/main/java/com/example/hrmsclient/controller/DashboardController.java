@@ -28,8 +28,7 @@ public class DashboardController {
         this.adminService = adminService;
     }
 
-    // Overview stats card
-    // GET /api/dashboard/overview
+ 
     @GetMapping("/overview")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','HR','MANAGER')")
     public ResponseEntity<?> getOverview(
@@ -39,10 +38,7 @@ public class DashboardController {
                 "data", dashboardService.getOverviewStats(user)));
     }
 
-    // Employee list with ALL filters
-    // GET /api/dashboard/employees?employeeId=EMP001&firstName=ravi&department=IT
-    // &role=EMPLOYEE&employmentStatus=ACTIVE
-    // &search=ravi&page=0&size=10&sortBy=firstName&sortDir=asc
+  
     @GetMapping("/employees")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','HR','MANAGER')")
     public ResponseEntity<?> getEmployees(
@@ -58,11 +54,7 @@ public class DashboardController {
                 "currentPage", employees.getNumber()));
     }
 
-    // Attendance with ALL filters
-    // GET
-    // /api/dashboard/attendance?attendanceDate=2024-03-01&attendanceStatus=PRESENT
-    // &employeeId=EMP001&attendanceDateFrom=2024-03-01
-    // &attendanceDateTo=2024-03-31&checkedIn=true
+   
     @GetMapping("/attendance")
     @PreAuthorize("hasAnyRole('ADMIN','HR','MANAGER')")
     public ResponseEntity<?> getAttendance(@ModelAttribute DashboardFilterRequest filter) {
@@ -76,8 +68,7 @@ public class DashboardController {
                 "currentPage", attendance.getNumber()));
     }
 
-    // Department breakdown chart data
-    // GET /api/dashboard/departments
+   
     @GetMapping("/departments")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','HR','MANAGER')")
     public ResponseEntity<?> getDepartments() {
@@ -86,12 +77,7 @@ public class DashboardController {
                 "data", dashboardService.getDepartmentBreakdown()));
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
-    // SECTION B — ADMIN + HR only (HR can VIEW payroll, not process)
-    // ═════════════════════════════════════════════════════════════════════════
-
-    // Payroll list with filters — HR can view, not process
-    // GET /api/dashboard/payroll?payrollMonth=2024-03-01&payrollStatus=PAID
+   
     @GetMapping("/payroll")
     @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public ResponseEntity<?> getPayroll(@ModelAttribute DashboardFilterRequest filter) {
@@ -103,12 +89,6 @@ public class DashboardController {
                 "totalPages", payroll.getTotalPages()));
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
-    // SECTION C — ADMIN ONLY (Critical Operations)
-    // ═════════════════════════════════════════════════════════════════════════
-
-    // Admin stats — total admins, super admins etc
-    // GET /api/dashboard/admin-stats
     @GetMapping("/admin-stats")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAdminStats() {
@@ -117,8 +97,7 @@ public class DashboardController {
                 "data", adminService.getDashboardStats()));
     }
 
-    // Generate payroll for a month — ADMIN ONLY
-    // POST /api/dashboard/payroll/generate?month=2024-03-01
+  
     @PostMapping("/payroll/generate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> generatePayroll(
